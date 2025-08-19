@@ -55,12 +55,10 @@ Prepare a settings.json file like:
 	"project_name": "your-project",
 	"app_path": "app",
 
-	"run_env_script_path": "scripts/zephyr-build-tool",
 	"venv_path": ".venv",
-	"extra_requirements_path": "scripts/requirements.txt",
 	"dotenv_path": ".env",
-	"nrf_sdk_url": "https://github.com/nrfconnect/sdk-nrf",
-	"nrf_sdk_version": "v2.9.1",
+	"manifest_url": "https://github.com/nrfconnect/sdk-nrf",
+	"manifest_version": "v2.9.1",
 	"zephyr_env_path": ".zephyr_env",
 	"zephyr_boards_path": "app",
 
@@ -74,14 +72,14 @@ Prepare a settings.json file like:
 ### 3. 🏗 Run the environment setup and build firmware script
 
 ```console
-python run_env.py --env venv-dotenv zephyr toolchain --set settings.json --run build_app.py -- board_name
+python run_env.py --env all --set settings.json --run build_app.py -- board_name
 ```
 
 Sample output:
 ```console
-✅ System dependencies check
 ✅ Python virtual envirornment check
 ✅ .env file check
+✅ System dependencies check
 ✅ Zephyr virtual envirornment check
 ✅ Toolchain check
                                                                          
@@ -96,7 +94,7 @@ Sample output:
 
 Arguments:
 
-* --env : Select environment components to prepare (all, venv-dotenv, zephyr, toolchain)
+* --env : Select environment components to prepare (all, venv-dotenv)
 * --set : Path to the JSON settings file
 * --run : Script to run inside the prepared environment
 * -- : Separator for script arguments
@@ -104,7 +102,7 @@ Arguments:
 ### 4. Run your custom script
 
 ```console
-python run_env.py --env venv-dotenv zephyr toolchain --set settings.json --run your_script.py -- [your_script args]
+python run_env.py --env venv-dotenv --set settings.json --run your_script.py -- [your_script args]
 ```
 
 ## ⚙️ Repository Structure
