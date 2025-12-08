@@ -60,6 +60,7 @@ Prepare a settings.json file like:
 	"manifest_url": "https://github.com/nrfconnect/sdk-nrf",
 	"manifest_version": "v2.9.1",
 	"zephyr_env_path": ".zephyr_env",
+	"zephyr_sdk_version": "0.16.8",
 	"zephyr_boards_path": "app",
 
 	"build_path": "build"

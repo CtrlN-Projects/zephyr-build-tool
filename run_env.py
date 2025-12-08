@@ -249,7 +249,8 @@ def check_zephyr_sdk(venv_path,
     return None
 
 def ensure_toolchain(venv_path, 
-                     zephyr_env_path):
+                     zephyr_env_path,
+                     sdk_version):
 
     sdk_path = check_zephyr_sdk(venv_path, zephyr_env_path)
 
@@ -260,7 +261,7 @@ def ensure_toolchain(venv_path,
     print("📦 Initializing toolchain...\n")
 
     res, err = run_command_in_venv(venv_path, f"west sdk install " +
-            f"--toolchains arm-zephyr-eabi --no-hosttools", 
+            f"--toolchains arm-zephyr-eabi --no-hosttools --version {sdk_version}", 
             zephyr_env_path)
 
     if err:
@@ -345,6 +346,7 @@ if __name__ == "__main__":
     dotenv_path = settings_json["dotenv_path"]
 
     zephyr_env_path = settings_json["zephyr_env_path"]
+    zephyr_sdk_verison = settings_json["zephyr_sdk_version"]
     zephyr_boards_path = settings_json["zephyr_boards_path"]
     manifest_version = settings_json.get("manifest_version") or None
     manifest_url = settings_json.get("manifest_url") or None
@@ -382,7 +384,8 @@ if __name__ == "__main__":
     ## STEP 4: create/check toolchain
     if args.all:
         ensure_toolchain(venv_path, 
-                         zephyr_env_path)
+                         zephyr_env_path,
+                         zephyr_sdk_verison)
 
     show_banner()
 
