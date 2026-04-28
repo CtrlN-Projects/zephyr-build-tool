@@ -10,6 +10,18 @@ import json
 PYTHON = "python" if sys.platform == "win32" else "python3"
 RUN_ENV_SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 
+def resolve_path(path):
+    if not path:
+        return path
+
+    # path = path.replace("\\", "/")
+    path = os.path.expanduser(path)
+    path = os.path.expandvars(path)
+    path = os.path.normpath(path)
+    path = os.path.abspath(path)
+
+    return path
+
 def check_tool(tool_name, install_instruction):
     if shutil.which(tool_name):
         return True
@@ -131,7 +143,7 @@ def ensure_venv(venv_path, extra_requirements_list=None):
 
         if extra_requirements_list:
             for req in extra_requirements_list:
-                command += f" -r {os.path.expanduser(req)}"
+                command += f" -r {resolve_path(req)}"
 
         res, err = run_command_in_venv(venv_path, command)
     
@@ -156,11 +168,11 @@ def ensure_dotenv(company_name,
                   build_path,
         ):
 
-    abs_zephyr_boards = os.path.abspath(zephyr_boards_path)
-    abs_app_path = os.path.abspath(app_path)
-    abs_venv_path = os.path.abspath(venv_path)
-    abs_zephyr_env_path = os.path.abspath(zephyr_env_path)
-    abs_build_path = os.path.abspath(build_path)
+    abs_zephyr_boards = resolve_path(zephyr_boards_path)
+    abs_app_path = resolve_path(app_path)
+    abs_venv_path = resolve_path(venv_path)
+    abs_zephyr_env_path = resolve_path(zephyr_env_path)
+    abs_build_path = resolve_path(build_path)
 
     if os.path.exists(dotenv_path):
         print(f"✅ .env file check")
@@ -193,7 +205,8 @@ def ensure_zephyr_env(venv_path,
                       zephyr_env_path,
                       manifest_url,
                       manifest_version,
-                      manifest_path=None):
+                      manifest_path=None,
+                      manifest_repo_name="manifest_repo"):
 
     if not os.path.exists(zephyr_env_path):
         print("📦 Initializing Zephyr virtual environment...\n")
@@ -202,14 +215,22 @@ def ensure_zephyr_env(venv_path,
         env.pop("ZEPHYR_BASE", None)
 
         if manifest_path:
-            manifest_arg = f"--mf {manifest_path}"
+            manifest_repo_path = os.path.join(zephyr_env_path, manifest_repo_name)
+            new_manifest_path = os.path.join(manifest_repo_path, "west.yml")
+
+            command = f"mkdir {zephyr_env_path} && cd {zephyr_env_path} && " \
+                      f"mkdir {manifest_repo_path} && " \
+                      f"cp {manifest_path} {new_manifest_path} &&" \
+                      f"west init -l {manifest_repo_path} && " \
+                      f"west update"
         else:
             manifest_arg = f"-m {manifest_url} --mr {manifest_version}"
+            command = f"mkdir {zephyr_env_path} && cd {zephyr_env_path} && " \
+                    f"west init {manifest_arg} " \
+                    f"&& west update"
 
-        res, err = run_command_in_venv(venv_path, f"mkdir {zephyr_env_path} && "
-                f"cd {zephyr_env_path} && "
-                f"west init {manifest_arg} "
-                f"&& west update", env=env)
+        print (f"Running west command: {command}")
+        res, err = run_command_in_venv(venv_path, command)
         
         if err:
             shutil.rmtree(zephyr_env_path)
@@ -350,19 +371,19 @@ if __name__ == "__main__":
     company_name = settings_json["company_name"]
     project_name = settings_json["project_name"]
     
-    app_path = os.path.expanduser(settings_json["app_path"])
+    app_path = resolve_path(settings_json["app_path"])
 
-    venv_path = os.path.expanduser(settings_json["venv_path"])
-    zephyr_env_path = os.path.expanduser(settings_json["zephyr_env_path"])
+    venv_path = resolve_path(settings_json["venv_path"])
+    zephyr_env_path = resolve_path(settings_json["zephyr_env_path"])
 
     extra_requirements_list = args.extra_requirements
-    zephyr_boards_path = os.path.expanduser(settings_json["zephyr_boards_path"])
+    zephyr_boards_path = resolve_path(settings_json["zephyr_boards_path"])
 
     manifest_path = settings_json.get("manifest_path") or None
     if manifest_path:
-        manifest_path = os.path.expanduser(manifest_path)
+        manifest_path = resolve_path(manifest_path)
 
-    build_path = os.path.expanduser(settings_json["build_path"])
+    build_path = resolve_path(settings_json["build_path"])
 
     zephyr_sdk_verison = settings_json["zephyr_sdk_version"]
     manifest_version = settings_json.get("manifest_version") or None
@@ -392,7 +413,8 @@ if __name__ == "__main__":
                           zephyr_env_path,
                           manifest_url,
                           manifest_version,
-                          manifest_path)
+                          manifest_path,
+                          project_name)
     else:
         zephyr_env_path = None
 
